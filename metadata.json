@@ -1,0 +1,6 @@
+{
+  "name": "Typing Attack — Juice & Speed Edition",
+  "description": "High-octane arcade typing defense with speed bonus tiers, procedural audio, shockwaves, boss encounters, and deep typing analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

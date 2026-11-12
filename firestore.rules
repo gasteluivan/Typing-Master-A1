@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Profile & Progression
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+
+      // User session logs
+      match /sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Runs collection (validated runs)
+    match /runs/{runId} {
+      allow read: if true;
+      // Writing runs requires authentication and score bounds verification
+      // Maximum plausible score capped at level * 25000 (reflecting up to 6.0x multiplier and boss rewards)
+      allow create: if isAuthenticated() &&
+        request.resource.data.score is number &&
+        request.resource.data.score <= request.resource.data.levelReached * 25000 &&
+        request.resource.data.score >= 0;
+      allow update, delete: if false; // immutable runs
+    }
+
+    // Daily Challenge Leaderboard
+    match /daily/{date}/entries/{userId} {
+      allow read: if true;
+      allow write: if isOwner(userId) &&
+        request.resource.data.score is number &&
+        request.resource.data.score <= 350000;
+    }
+  }
+}
